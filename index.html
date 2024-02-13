@@ -207,10 +207,17 @@
             return response.json();
           })
           .then((data) => {
+            const $learningHours = document.getElementById("learningHours");
+
             if (data[todayStr]) {
-              console.log("祝日");
+              $learningHours.value = 10;
             } else {
-              console.log("祝日ではない");
+              const week = new Date().getDay();
+              if (week === 0 || week === 6) {
+                $learningHours.value = 10;
+              } else {
+                $learningHours.value = 4;
+              }
             }
           });
       }
