@@ -5,3 +5,7 @@
 ## URL
 
 [https://nippou-ochre.vercel.app/](https://nippou-ochre.vercel.app/)
+
+## 検証環境
+
+Mac
