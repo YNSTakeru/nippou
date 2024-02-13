@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>APPRENTICE日報</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+      }
+      h1 {
+        text-align: center;
+      }
+
+      .content__wrapper {
+        margin: 0 auto;
+        width: 80%;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        font-size: x-large;
+      }
+
+      .date__wrapper {
+        display: flex;
+        justify-content: start;
+        align-items: center;
+      }
+      button {
+        margin-left: 10px;
+        padding: 5px 15px;
+        font-size: 18px;
+        border-radius: 8px;
+        transition: box-shadow 0.3s cubic-bezier(0.08, 0.29, 0.38, 0.97),
+          transform 0.3s cubic-bezier(0.08, 0.29, 0.38, 0.97);
+        cursor: pointer;
+      }
+
+      button:hover {
+        transform: translate(-5px, -5px);
+        box-shadow: 5px 5px 10px 0 rgb(190 188 188 / 50%);
+      }
+
+      .done-ul {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .done-ul li {
+        display: flex;
+        justify-content: space-between;
+        width: 40vw;
+      }
+
+      .done-ul button {
+        display: block;
+      }
+
+      text,
+      textarea {
+        font-size: 20px;
+        margin-left: 10px;
+        padding: 5px 15px;
+        border-radius: 4px;
+        flex-grow: 1;
+        width: 48vw;
+      }
+
+      input {
+        padding: 5px 5px;
+        margin: 0 5px 0 10px;
+        font-size: 20px;
+        border-radius: 4px;
+        vertical-align: bottom;
+      }
+
+      #impression {
+        display: flex;
+        gap: 20px;
+      }
+
+      #impression-example {
+        color: rgb(90 84 84);
+        width: 48vw;
+        flex-grow: 1;
+      }
+
+      #impression-example span {
+        font-size: 30px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>APPRENTICE日報ジェネレーター</h1>
+    <div class="content__wrapper">
+      <div class="date__wrapper">
+        <div id="date"></div>
+        <button id="yesterday-button">前日に変更</button>
+      </div>
+      <div>
+        学習時間:
+        <input
+          type="number"
+          id="learningHours"
+          min="0"
+          max="24"
+          value="10"
+        />時間
+      </div>
+      <div>
+        <h2>Doneリスト</h2>
+        <ul id="done"></ul>
+        <input type="text" id="done-content" />
+        <button id="done-button">追加</button>
+      </div>
+      <h2>感想/学んだこと/工夫詰まっていること/明日やりたいこと</h2>
+      <div id="impression">
+        <textarea id="impression-textarea" cols="100" rows="10"></textarea>
+        <div id="impression-example">
+          <span>例文</span><br />
+          Rubyの条件分岐とループ処理の書き方を練習しました。<br />ループ処理は色々な書き方があったので、ケースによって使い分けるよう工夫しました。
+          いろんな書き方ができるのは楽しいですね。 <br /><br />
+          明日はクラス設計を学んでいきます！
+        </div>
+      </div>
+      <div id="output">
+        <button id="output-button">文章を出力してコピー</button>
+      </div>
+    </div>
+
+    <script>
+      function getDateProps({ yesterday } = { yesterday: false }) {
+        const date = new Date();
+        date.setDate(date.getDate() - (yesterday ? 1 : 0));
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const week = date.getDay();
+        const weekList = ["日", "月", "火", "水", "木", "金", "土"];
+        const weekDay = weekList[week];
+
+        return {
+          month,
+          day,
+          weekDay,
+        };
+      }
+
+      function generateDate() {
+        const { month, day, weekDay } = getDateProps();
+        return `${month}/${day}(${weekDay})`;
+      }
+
+      function changeYesterDay() {
+        const { month, day, weekDay } = getDateProps({ yesterday: true });
+        return `${month}/${day}(${weekDay})`;
+      }
+
+      function copyToClipboard(str) {
+        const $textarea = document.createElement("textarea");
+        $textarea.value = str;
+        document.body.appendChild($textarea);
+        $textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild($textarea);
+      }
+
+      function outputStrToHTML() {
+        const $output = document.getElementById("impression-example");
+        $output.textContent = "";
+        const $outputDate = document.createElement("div");
+        $outputDate.textContent = `${$date.textContent}`;
+        const $outputLearningHour =
+          document.createElement("outputLearningHour");
+        $outputLearningHour.textContent = `学習時間: ${$learningHours.value}時間`;
+        const $outputDoneUl = document.createElement("ul");
+
+        doneListStrings.split("・").forEach((done) => {
+          if (done === "") return;
+          const $outputDoneLi = document.createElement("li");
+          $outputDoneLi.textContent = done;
+          $outputDoneUl.appendChild($outputDoneLi);
+        });
+
+        const $outputImpression = document.createElement("div");
+        $outputImpression.textContent = $impressionTextarea.value;
+        $output.appendChild($outputDate);
+        $output.appendChild($outputLearningHour);
+        $output.appendChild($outputDoneUl);
+        $output.appendChild($outputImpression);
+      }
+
+      const date = generateDate();
+      const $date = document.getElementById("date");
+      const $yesterdayButton = document.getElementById("yesterday-button");
+      let yesterdayChanger = false;
+
+      $date.textContent = date;
+      $yesterdayButton.addEventListener("click", () => {
+        const yesterday = yesterdayChanger ? changeYesterDay() : generateDate();
+        $date.textContent = yesterday;
+        $yesterdayButton.textContent = yesterdayChanger
+          ? "前日に変更"
+          : "本日に変更";
+        yesterdayChanger = !yesterdayChanger;
+      });
+
+      const $learningHours = document.getElementById("learningHours");
+      $doneListStrings = document.getElementById("done").textContent;
+
+      const week = new Date().getDay();
+      if (week === 0 || week === 6) {
+        $learningHours.value = 10;
+      } else {
+        $learningHours.value = 4;
+      }
+
+      const $done = document.getElementById("done");
+      $done.setAttribute("class", "done-ul");
+
+      const $doneButton = document.getElementById("done-button");
+      const $doneContent = document.getElementById("done-content");
+      let doneListStrings = "";
+
+      $doneButton.addEventListener("click", () => {
+        if (!$doneContent.value) return;
+        const $li = document.createElement("li");
+        const $span = document.createElement("span");
+        $span.textContent = $doneContent.value;
+
+        const $removeButton = document.createElement("button");
+        $removeButton.textContent = "削除";
+
+        $removeButton.addEventListener("click", () => {
+          $done.removeChild($li);
+          doneListStrings = doneListStrings.replace(
+            `・${$span.textContent}\n`,
+            ""
+          );
+        });
+
+        $span.addEventListener("click", () => {
+          const $input = document.createElement("input");
+          $input.value = $span.textContent;
+          $li.replaceChild($input, $span);
+
+          const $decisionButton = document.createElement("button");
+          $decisionButton.textContent = "決定";
+          $li.appendChild($decisionButton);
+
+          $decisionButton.addEventListener("click", () => {
+            $span.textContent = $input.value;
+            $li.replaceChild($span, $input);
+            $li.removeChild($decisionButton);
+          });
+        });
+        $li.appendChild($span);
+        $li.appendChild($removeButton);
+        $done.appendChild($li);
+        doneListStrings += `・${$span.textContent}\n`;
+        $doneContent.value = "";
+        $doneContent.focus();
+      });
+
+      const $impressionTextarea = document.getElementById(
+        "impression-textarea"
+      );
+
+      const $outputButton = document.getElementById("output-button");
+      const $impressionExample = document.getElementById("impression-example");
+
+      $outputButton.addEventListener("click", () => {
+        const str = `${`
+          ${date}\n学習時間: ${$learningHours.value}時間
+          ${doneListStrings}\n
+          `.replace(/^\s+/gm, "")}\n ${$impressionTextarea.value}`;
+
+        copyToClipboard(str);
+        outputStrToHTML(str);
+      });
+    </script>
+  </body>
+</html>
