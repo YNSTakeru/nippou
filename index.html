@@ -144,11 +144,13 @@
         const week = date.getDay();
         const weekList = ["日", "月", "火", "水", "木", "金", "土"];
         const weekDay = weekList[week];
+        const todayStr = `${year}-${month}-${day}`;
 
         return {
           month,
           day,
           weekDay,
+          todayStr,
         };
       }
 
@@ -190,10 +192,27 @@
 
         const $outputImpression = document.createElement("div");
         $outputImpression.textContent = $impressionTextarea.value;
+
         $output.appendChild($outputDate);
         $output.appendChild($outputLearningHour);
         $output.appendChild($outputDoneUl);
         $output.appendChild($outputImpression);
+      }
+
+      function isCelebrateDay() {
+        const { todayStr } = getDateProps();
+        const url = `https://holidays-jp.github.io/api/v1/date.json?date=${todayStr}`;
+        fetch(url)
+          .then((response) => {
+            return response.json();
+          })
+          .then((data) => {
+            if (data[todayStr]) {
+              console.log("祝日");
+            } else {
+              console.log("祝日ではない");
+            }
+          });
       }
 
       const date = generateDate();
@@ -215,7 +234,7 @@
       $doneListStrings = document.getElementById("done").textContent;
 
       const week = new Date().getDay();
-      if (week === 0 || week === 6) {
+      if (week === 0 || week === 6 || isCelebrateDay()) {
         $learningHours.value = 10;
       } else {
         $learningHours.value = 4;
